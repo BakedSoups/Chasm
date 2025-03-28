@@ -1,0 +1,183 @@
+extends CharacterBody3D
+
+@export var max_speed = 10.0
+@export var acceleration = 3.0
+@export var deceleration = 5.0
+@export var rotation_speed = 3.0
+
+@export var dash_speed = 30.0
+@export var dash_duration = 0.3
+@export var dash_cooldown = 1.0
+
+@export var camera_sensitivity = 0.003
+@export var controller_look_sensitivity = 2.0
+@export var spring_length = 5.0
+@export var camera_smoothing = 0.1
+
+@onready var spring_arm = $SpringArm3D
+@onready var camera = $SpringArm3D/Camera3D
+@onready var mesh = $Mesh
+
+var is_moving = false
+var is_dashing = false
+var dash_timer = 0.0
+var dash_cooldown_timer = 0.0
+var observation_mode = false
+var last_move_direction = Vector3.ZERO
+
+var target_spring_rotation = Vector3.ZERO
+var current_spring_rotation = Vector3.ZERO
+var target_mesh_rotation = 0.0
+
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	
+	spring_arm.spring_length = spring_length
+	
+	current_spring_rotation = spring_arm.rotation
+	target_spring_rotation = spring_arm.rotation
+
+func _input(event):
+	if event is InputEventMouseMotion:
+		target_spring_rotation.y -= event.relative.x * camera_sensitivity
+		
+		target_spring_rotation.x -= event.relative.y * camera_sensitivity
+		target_spring_rotation.x = clamp(target_spring_rotation.x, -PI/2, PI/2)
+	
+	if event.is_action_pressed("ui_cancel"):
+		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _process(delta):
+	var joy_look = Vector2.ZERO
+	joy_look.x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
+	joy_look.y = Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	
+	if joy_look.length() < 0.2:
+		joy_look = Vector2.ZERO
+	
+	if joy_look != Vector2.ZERO:
+		target_spring_rotation.y -= joy_look.x * controller_look_sensitivity * delta
+		target_spring_rotation.x -= joy_look.y * controller_look_sensitivity * delta
+		target_spring_rotation.x = clamp(target_spring_rotation.x, -PI/2, PI/2)
+
+func _physics_process(delta):
+	if dash_cooldown_timer > 0:
+		dash_cooldown_timer -= delta
+	if dash_timer > 0:
+		dash_timer -= delta
+		if dash_timer <= 0:
+			is_dashing = false
+	
+	_update_camera_smoothing(delta)
+	
+	var move_direction = Vector3.ZERO
+	
+	var camera_basis = spring_arm.global_transform.basis
+	var forward = -camera_basis.z
+	var right = camera_basis.x
+	
+	forward.y = 0
+	forward = forward.normalized()
+	right.y = 0
+	right = right.normalized()
+	
+	if Input.is_action_pressed("ui_up"):
+		move_direction += forward
+	if Input.is_action_pressed("ui_down"):
+		move_direction -= forward
+	if Input.is_action_pressed("ui_right"):
+		move_direction += right
+	if Input.is_action_pressed("ui_left"):
+		move_direction -= right
+	
+	var joy_direction = Vector2.ZERO
+	joy_direction.x = Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
+	joy_direction.y = Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
+	
+	if joy_direction.length() < 0.2:
+		joy_direction = Vector2.ZERO
+	else:
+		move_direction += right * joy_direction.x
+		move_direction += forward * -joy_direction.y
+	
+	if Input.is_action_just_pressed("ui_dash") and dash_cooldown_timer <= 0 and !is_dashing:
+		var dash_direction
+		if last_move_direction.length() > 0.1:
+			dash_direction = last_move_direction
+		else:
+			dash_direction = -camera_basis.z
+			dash_direction.y = 0
+			dash_direction = dash_direction.normalized()
+		
+		if dash_direction.length() > 0.1:
+			is_dashing = true
+			dash_timer = dash_duration
+			dash_cooldown_timer = dash_cooldown
+			velocity = dash_direction * dash_speed
+	
+	if move_direction.length() > 0:
+		move_direction = move_direction.normalized()
+		last_move_direction = move_direction
+		is_moving = true
+		
+		if observation_mode:
+			observation_mode = false
+	else:
+		is_moving = false
+		
+		if !is_moving and !observation_mode and !is_dashing:
+			observation_mode = true
+	
+	if is_dashing:
+		velocity = velocity.lerp(Vector3.ZERO, delta / dash_duration)
+	else:
+		if is_moving:
+			var target_velocity = move_direction * max_speed
+			velocity.x = lerp(velocity.x, target_velocity.x, acceleration * delta)
+			velocity.z = lerp(velocity.z, target_velocity.z, acceleration * delta)
+		else:
+			velocity.x = lerp(velocity.x, 0.0, deceleration * delta)
+			velocity.z = lerp(velocity.z, 0.0, deceleration * delta)
+		
+		if Input.is_action_pressed("ui_rise"):
+			velocity.y = lerp(velocity.y, max_speed, acceleration * delta)
+		elif Input.is_action_pressed("ui_dive"):
+			velocity.y = lerp(velocity.y, -max_speed, acceleration * delta)
+		else:
+			velocity.y = lerp(velocity.y, 0.0, deceleration * delta)
+	
+	if is_moving or is_dashing:
+		var direction_to_face = velocity.normalized() if is_dashing else move_direction
+		target_mesh_rotation = atan2(direction_to_face.x, direction_to_face.z)
+	elif !observation_mode:
+		var camera_direction = -camera_basis.z
+		camera_direction.y = 0
+		camera_direction = camera_direction.normalized()
+		
+		if camera_direction.length() > 0.1:
+			target_mesh_rotation = atan2(camera_direction.x, camera_direction.z)
+	
+	_update_mesh_rotation(delta)
+	
+	move_and_slide()
+
+func _update_camera_smoothing(delta):
+	var smoothing_speed = 1.0 - exp(-camera_smoothing / delta)
+	
+	current_spring_rotation = current_spring_rotation.lerp(target_spring_rotation, smoothing_speed)
+	
+	spring_arm.rotation = current_spring_rotation
+
+func _update_mesh_rotation(delta):
+	if observation_mode:
+		return
+		
+	var current_rotation = mesh.rotation.y
+	
+	var rotation_diff = fposmod(target_mesh_rotation - current_rotation + PI, TAU) - PI
+	
+	var smoothing_factor = 1.0 - exp(-rotation_speed * delta)
+	mesh.rotation.y += rotation_diff * smoothing_factor

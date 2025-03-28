@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3 uid="uid://cyf5dixwpbdbw"]
+
+[ext_resource type="PackedScene" uid="uid://dggcol0wcshpi" path="res://Player_Scenes/player.tscn" id="1_cuxii"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cuxii"]
+
+[node name="Main_World" type="Node3D"]
+
+[node name="temp_refereane" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -19.8209)
+mesh = SubResource("BoxMesh_cuxii")
+
+[node name="Player" parent="." instance=ExtResource("1_cuxii")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.35429, 0, 17.3501)
+max_speed = null
+acceleration = null
+deceleration = null
+rotation_speed = null
+dash_speed = null
+dash_duration = null
+dash_cooldown = null
+camera_sensitivity = null
+spring_length = null
+camera_smoothing = null
+
+[node name="Enviroment_Nodes" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Enviroment_Nodes"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Enviroment_Nodes"]
