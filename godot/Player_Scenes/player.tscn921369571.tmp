@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://dggcol0wcshpi"]
+
+[ext_resource type="Script" uid="uid://cc6h1ubcsyoqm" path="res://Scripts/player_script.gd" id="1_hv8xk"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_duskh"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_hv8xk"]
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_hv8xk")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
+spring_length = 5.0
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.891425, 3.13503)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_duskh")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_hv8xk")
+skeleton = NodePath("../CollisionShape3D")

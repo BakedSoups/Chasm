@@ -1,18 +1,21 @@
 extends CharacterBody3D
 
-@export var max_speed = 10.0
-@export var acceleration = 3.0
+@export var max_speed = 40.5
+@export var acceleration = 12.0
 @export var deceleration = 5.0
 @export var rotation_speed = 3.0
 
-@export var dash_speed = 30.0
+@export var dash_speed = 90.0
 @export var dash_duration = 0.3
 @export var dash_cooldown = 1.0
-
+@export var dash_acceleration = 3.0
+@export var dash_deceleration = 1.0
+@export var post_dash_inertia = 0.7
 @export var camera_sensitivity = 0.003
 @export var controller_look_sensitivity = 2.0
 @export var spring_length = 5.0
 @export var camera_smoothing = 0.1
+@export var dash_camera_smoothing = 0.5
 
 @onready var spring_arm = $SpringArm3D
 @onready var camera = $SpringArm3D/Camera3D
@@ -24,6 +27,10 @@ var dash_timer = 0.0
 var dash_cooldown_timer = 0.0
 var observation_mode = false
 var last_move_direction = Vector3.ZERO
+var dash_direction = Vector3.ZERO
+var dash_velocity = Vector3.ZERO
+var current_dash_speed = 0.0
+var target_dash_speed = 0.0
 
 var target_spring_rotation = Vector3.ZERO
 var current_spring_rotation = Vector3.ZERO
@@ -33,6 +40,7 @@ func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	
 	spring_arm.spring_length = spring_length
+	spring_arm.top_level = true
 	
 	current_spring_rotation = spring_arm.rotation
 	target_spring_rotation = spring_arm.rotation
@@ -71,7 +79,7 @@ func _physics_process(delta):
 		if dash_timer <= 0:
 			is_dashing = false
 	
-	_update_camera_smoothing(delta)
+	_update_camera_position(delta)
 	
 	var move_direction = Vector3.ZERO
 	
@@ -104,7 +112,6 @@ func _physics_process(delta):
 		move_direction += forward * -joy_direction.y
 	
 	if Input.is_action_just_pressed("ui_dash") and dash_cooldown_timer <= 0 and !is_dashing:
-		var dash_direction
 		if last_move_direction.length() > 0.1:
 			dash_direction = last_move_direction
 		else:
@@ -113,10 +120,20 @@ func _physics_process(delta):
 			dash_direction = dash_direction.normalized()
 		
 		if dash_direction.length() > 0.1:
+			# Preserve vertical movement during dash
+			dash_direction.y = 0
+			dash_direction = dash_direction.normalized()
+			
 			is_dashing = true
 			dash_timer = dash_duration
 			dash_cooldown_timer = dash_cooldown
-			velocity = dash_direction * dash_speed
+			
+			dash_velocity = velocity
+			current_dash_speed = velocity.length()
+			target_dash_speed = dash_speed
+			
+			if velocity.length() < 5.0:
+				current_dash_speed = 5.0
 	
 	if move_direction.length() > 0:
 		move_direction = move_direction.normalized()
@@ -132,12 +149,32 @@ func _physics_process(delta):
 			observation_mode = true
 	
 	if is_dashing:
-		velocity = velocity.lerp(Vector3.ZERO, delta / dash_duration)
+		var dash_progress = 1.0 - (dash_timer / dash_duration)
+		
+		if dash_progress < 0.5:
+			current_dash_speed = lerp(current_dash_speed, target_dash_speed, delta * dash_acceleration)
+		else:
+			current_dash_speed = lerp(current_dash_speed, max_speed * post_dash_inertia, delta * dash_deceleration)
+		
+		# Create the dash velocity vector while preserving vertical movement
+		var dash_move_vector = dash_direction * current_dash_speed
+		
+		# Maintain the original vertical velocity during dash
+		velocity.x = dash_move_vector.x
+		velocity.z = dash_move_vector.z
+		
+		if dash_timer <= 0:
+			is_dashing = false
 	else:
+		var momentum_factor = 1.0
+		
+		if dash_timer <= 0 and dash_cooldown_timer > dash_cooldown - 0.3:
+			momentum_factor = 0.5  # Apply less control right after dash
+		
 		if is_moving:
 			var target_velocity = move_direction * max_speed
-			velocity.x = lerp(velocity.x, target_velocity.x, acceleration * delta)
-			velocity.z = lerp(velocity.z, target_velocity.z, acceleration * delta)
+			velocity.x = lerp(velocity.x, target_velocity.x, acceleration * delta * momentum_factor)
+			velocity.z = lerp(velocity.z, target_velocity.z, acceleration * delta * momentum_factor)
 		else:
 			velocity.x = lerp(velocity.x, 0.0, deceleration * delta)
 			velocity.z = lerp(velocity.z, 0.0, deceleration * delta)
@@ -148,6 +185,14 @@ func _physics_process(delta):
 			velocity.y = lerp(velocity.y, -max_speed, acceleration * delta)
 		else:
 			velocity.y = lerp(velocity.y, 0.0, deceleration * delta)
+			
+		# Update last_move_direction with horizontal components only
+		var horizontal_velocity = Vector3(velocity.x, 0, velocity.z)
+		var last_move_direction = Vector3(velocity.x, 0, velocity.z).normalized()
+		if last_move_direction.length() < 0.1:
+			last_move_direction = -camera_basis.z
+			last_move_direction.y = 0
+			last_move_direction = last_move_direction.normalized()
 	
 	if is_moving or is_dashing:
 		var direction_to_face = velocity.normalized() if is_dashing else move_direction
@@ -164,20 +209,23 @@ func _physics_process(delta):
 	
 	move_and_slide()
 
-func _update_camera_smoothing(delta):
-	var smoothing_speed = 1.0 - exp(-camera_smoothing / delta)
+func _update_camera_position(delta):
+	# Use faster camera tracking during dashes
+	var smoothing_value = dash_camera_smoothing if is_dashing else camera_smoothing
+	var smoothing_speed = 1.0 - exp(-smoothing_value / delta)
 	
 	current_spring_rotation = current_spring_rotation.lerp(target_spring_rotation, smoothing_speed)
-	
 	spring_arm.rotation = current_spring_rotation
+	
+	# Instantly track character position (no lag)
+	spring_arm.global_position = global_position
+	spring_arm.spring_length = spring_length
 
 func _update_mesh_rotation(delta):
 	if observation_mode:
 		return
 		
 	var current_rotation = mesh.rotation.y
-	
 	var rotation_diff = fposmod(target_mesh_rotation - current_rotation + PI, TAU) - PI
-	
 	var smoothing_factor = 1.0 - exp(-rotation_speed * delta)
 	mesh.rotation.y += rotation_diff * smoothing_factor

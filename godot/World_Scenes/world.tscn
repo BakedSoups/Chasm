@@ -1,0 +1,86 @@
+[gd_scene load_steps=16 format=3 uid="uid://cesvmucj5nlu6"]
+
+[ext_resource type="Shader" uid="uid://bhyyykj30mrt7" path="res://Shaders/dome.gdshader" id="1_a02cp"]
+[ext_resource type="Shader" uid="uid://5y4s13iluhxo" path="res://Shaders/floor.gdshader" id="2_5ukr8"]
+[ext_resource type="PackedScene" uid="uid://dxfpi20vx0jwb" path="res://Archive/Old_Scenes/below_surface2.tscn" id="2_go701"]
+[ext_resource type="PackedScene" uid="uid://cswtjy3mcequ3" path="res://Scenes/surface.tscn" id="3_5a7ea"]
+[ext_resource type="PackedScene" uid="uid://by5fxhj27ojll" path="res://Scenes/subsurface.tscn" id="4_8j60k"]
+[ext_resource type="PackedScene" uid="uid://b5mp802n4sbnx" path="res://randobjects.tscn" id="5_fo5ed"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yp4wr"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_a02cp"]
+sky_material = SubResource("ProceduralSkyMaterial_yp4wr")
+
+[sub_resource type="Environment" id="Environment_go701"]
+background_mode = 2
+sky = SubResource("Sky_a02cp")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a02cp"]
+albedo_color = Color(0.501961, 0.835294, 0.376471, 1)
+
+[sub_resource type="PrismMesh" id="PrismMesh_go701"]
+material = SubResource("StandardMaterial3D_a02cp")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8j60k"]
+render_priority = 0
+shader = ExtResource("1_a02cp")
+shader_parameter/albedo = Color(0, 0, 0, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_fo5ed"]
+flip_faces = true
+height = 0.5
+is_hemisphere = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_fo5ed"]
+orientation = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o06y3"]
+render_priority = 0
+shader = ExtResource("2_5ukr8")
+
+[node name="World" type="Node3D"]
+
+[node name="Light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_go701")
+
+[node name="Demobject" type="MeshInstance3D" parent="."]
+transform = Transform3D(10, -0.0039918, -0.00282244, 0.00399239, 10, 0.00257484, 0.0028216, -0.00257577, 10, 0, -10, 0)
+mesh = SubResource("PrismMesh_go701")
+
+[node name="Dome" type="MeshInstance3D" parent="."]
+transform = Transform3D(50, 0, 0, 0, -50, -4.37114e-06, 0, 4.37114e-06, -50, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_8j60k")
+mesh = SubResource("SphereMesh_fo5ed")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -10, 0)
+mesh = SubResource("QuadMesh_fo5ed")
+surface_material_override/0 = SubResource("ShaderMaterial_o06y3")
+
+[node name="Below_Surface" parent="." instance=ExtResource("2_go701")]
+transform = Transform3D(10, 0, 0, 0, -10, 8.74228e-07, 0, -8.74228e-07, -10, 0, -0.392039, 0)
+visible = false
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.997045, 0.0728915, 0.0242407, 0.0219457, 0.0321239, -0.999243, -0.073615, 0.996822, 0.0304294, 6.22999, -4.04432, 4.48754)
+fov = 120.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.223063, 0.974804, 0, -0.87061, -0.19922, -0.449833, -0.4385, -0.100341, 0.893112, -12.0553, -7.88291, 0)
+
+[node name="Surface" parent="." instance=ExtResource("3_5a7ea")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.999735, 0)
+
+[node name="Sub_Surface" parent="." instance=ExtResource("4_8j60k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+visible = false
+
+[node name="Node3D" parent="." instance=ExtResource("5_fo5ed")]

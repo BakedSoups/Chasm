@@ -1,20 +1,61 @@
-[gd_scene load_steps=3 format=3 uid="uid://cyf5dixwpbdbw"]
+[gd_scene load_steps=7 format=3 uid="uid://cyf5dixwpbdbw"]
 
 [ext_resource type="PackedScene" uid="uid://dggcol0wcshpi" path="res://Player_Scenes/player.tscn" id="1_cuxii"]
+[ext_resource type="PackedScene" uid="uid://b8vfihg1ufr1v" path="res://Plants.tscn" id="3_whn46"]
+[ext_resource type="Shader" uid="uid://dyi1c34ppdd3u" path="res://World_Scenes/water.gdshader" id="3_wquaw"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_cuxii"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wquaw"]
+
+[sub_resource type="Environment" id="Environment_wquaw"]
+ambient_light_color = Color(0, 0, 0.435294, 1)
+ambient_light_energy = 5.22
+glow_intensity = 1.26
+glow_strength = 0.35
+glow_bloom = 0.84
+glow_blend_mode = 0
+glow_hdr_scale = 4.0
+glow_hdr_luminance_cap = 256.0
+glow_map = SubResource("NoiseTexture2D_wquaw")
+fog_enabled = true
+fog_light_color = Color(0.0370745, 0.0576012, 0.230539, 1)
+fog_light_energy = 0.3
+fog_density = 0.0
+fog_height_density = -0.009
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_whn46"]
+shader = ExtResource("3_wquaw")
+shader_parameter/water_opacity = 0.22
+shader_parameter/blue_tint_strength = 0.725
+shader_parameter/wave_speed = 0.42
+shader_parameter/wave_frequency = 13.26
+shader_parameter/wave_amplitude = 0.56
 
 [node name="Main_World" type="Node3D"]
 
-[node name="temp_refereane" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -19.8209)
-mesh = SubResource("BoxMesh_cuxii")
-
 [node name="Player" parent="." instance=ExtResource("1_cuxii")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.35429, 0, 17.3501)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.35429, 17.7157, 17.3501)
 
 [node name="Enviroment_Nodes" type="Node3D" parent="."]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Enviroment_Nodes"]
+environment = SubResource("Environment_wquaw")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Enviroment_Nodes"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_whn46")
+offset_left = -42.0
+offset_top = -33.0
+offset_right = 1251.0
+offset_bottom = 719.0
+
+[node name="Node3D" parent="." instance=ExtResource("3_whn46")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 709.213, 0)
+light_color = Color(1, 1, 0.862745, 1)
+light_energy = 7.875
+light_indirect_energy = 1.565
+sky_mode = 2

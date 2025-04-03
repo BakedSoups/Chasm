@@ -1,0 +1,93 @@
+[gd_scene load_steps=14 format=3 uid="uid://4pu2d17djc4"]
+
+[ext_resource type="Shader" uid="uid://2kw0tm70b2y4" path="res://Shaders/surface.gdshader" id="1_o104s"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_k5s0u"]
+size = Vector2(50, 50)
+subdivide_width = 500
+subdivide_depth = 500
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_6c22s"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_elndb"]
+seamless = true
+as_normal_map = true
+bump_strength = 15.0
+noise = SubResource("FastNoiseLite_6c22s")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_o104s"]
+noise_type = 3
+fractal_type = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2tapi"]
+seamless = true
+as_normal_map = true
+bump_strength = 2.0
+noise = SubResource("FastNoiseLite_o104s")
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_uh5sj"]
+seamless = true
+seamless_blend_skirt = 0.01
+as_normal_map = true
+bump_strength = 2.0
+noise = SubResource("FastNoiseLite_o104s")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_2tapi"]
+noise_type = 3
+frequency = 0.0171
+fractal_lacunarity = 1.0
+domain_warp_frequency = 1.0
+domain_warp_fractal_type = 0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0i7l3"]
+seamless = true
+bump_strength = 5.7
+noise = SubResource("FastNoiseLite_2tapi")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2tapi"]
+render_priority = 0
+shader = ExtResource("1_o104s")
+shader_parameter/normal_map_texture = SubResource("NoiseTexture2D_elndb")
+shader_parameter/albedo1 = Color(0, 0.101961, 0.2, 1)
+shader_parameter/albedo2 = Color(0, 0.190765, 0.190858, 1)
+shader_parameter/roughness = 0.01
+shader_parameter/wave = SubResource("NoiseTexture2D_0i7l3")
+shader_parameter/noise_scale = 10.0
+shader_parameter/wave_height_scale = 0.5
+shader_parameter/wave_time_scale = 0.02
+shader_parameter/texture_normal1 = SubResource("NoiseTexture2D_2tapi")
+shader_parameter/texture_normal2 = SubResource("NoiseTexture2D_uh5sj")
+shader_parameter/direction1 = Vector2(1, 0)
+shader_parameter/direction2 = Vector2(0, 1)
+shader_parameter/texture_time_scale = 0.025
+shader_parameter/fresnel_size = 4.0
+shader_parameter/fresnel_scale = 2.0
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_o104s"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_2tapi"]
+sky_material = SubResource("ProceduralSkyMaterial_o104s")
+
+[sub_resource type="Environment" id="Environment_uh5sj"]
+background_mode = 2
+sky = SubResource("Sky_2tapi")
+tonemap_mode = 2
+
+[node name="Surface" type="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.566638, 0.613824, 0.694037)
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_k5s0u")
+surface_material_override/0 = SubResource("ShaderMaterial_2tapi")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_uh5sj")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.249311, -0.241047, -0.937945, 0.0032924, 0.968733, -0.248084, 0.968418, 0.0587619, 0.242309, 0, 0.424475, 0)
+fov = 66.3666
