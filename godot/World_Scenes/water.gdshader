@@ -3,8 +3,8 @@ uniform float scanline_intensity : hint_range(0.0, 1.0) = 0.01;//0.3;
 uniform float color_bleed_weight : hint_range(0.0, 1.0) = 0.01;//0.35;
 uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
 
-void fragment() { 
-	vec2 screen_resolution = vec2(1.0 / SCREEN_PIXEL_SIZE.y, 1.0 / SCREEN_PIXEL_SIZE.x); //vec2(480, 270); 
+void fragment() {
+	vec2 screen_resolution = vec2(1.0 / SCREEN_PIXEL_SIZE.y, 1.0 / SCREEN_PIXEL_SIZE.x); //vec2(480, 270);
 	float color_dark_offset = 0.1;//0.5;
 	int y_pos = int(floor(SCREEN_UV.y * screen_resolution.y * 2.0));
 	if (int(floor((float(y_pos) / 2.0))) * 2 == y_pos) {

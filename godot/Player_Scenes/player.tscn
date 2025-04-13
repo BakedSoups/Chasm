@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cc6h1ubcsyoqm" path="res://Scripts/player_script.gd" id="1_hv8xk"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_duskh"]
+size = Vector3(1, 2.45313, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4008u"]
 resource_name = "Material.001"
@@ -556,6 +557,7 @@ spring_length = 5.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.891425, 3.13503)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.726563, 0)
 shape = SubResource("BoxShape3D_duskh")
 
 [node name="Camera" type="Camera3D" parent="."]
