@@ -113,10 +113,10 @@ func _process(delta):
 		debug_counter += delta
 		if debug_counter > 2.0:
 			debug_counter = 0.0
-			print("Animation 1 playing: ", animation_player.is_playing(), 
-				  " Animation 2 playing: ", animation_player2.is_playing(),
-				  " Current state: ", current_animation_state,
-				  " Is moving: ", is_moving)
+			#print("Animation 1 playing: ", animation_player.is_playing(), 
+				  #" Animation 2 playing: ", animation_player2.is_playing(),
+				  #" Current state: ", current_animation_state,
+				  #" Is moving: ", is_moving)
 
 func _physics_process(delta):
 	if dash_cooldown_timer > 0:
@@ -309,7 +309,7 @@ func _switch_to_moving_animation():
 	animation_player.stop()
 	animation_player.set_speed_scale(1.0) 
 	animation_player.play("mixamo_com")
-	print("Switched to moving animation - Animation playing: ", animation_player.is_playing(), " Current anim: ", animation_player.current_animation)
+	#print("Switched to moving animation - Animation playing: ", animation_player.is_playing(), " Current anim: ", animation_player.current_animation)
 
 func _switch_to_idle_animation():
 	animation_player.stop()
@@ -317,7 +317,7 @@ func _switch_to_idle_animation():
 	animation_player2.stop()
 	animation_player2.set_speed_scale(1.0)
 	animation_player2.play("mixamo_com")
-	print("Switched to idle animation - Animation playing: ", animation_player2.is_playing(), " Current anim: ", animation_player2.current_animation)
+	#print("Switched to idle animation - Animation playing: ", animation_player2.is_playing(), " Current anim: ", animation_player2.current_animation)
 
 func closest_entity():
 	var entities = target_search.get_overlapping_bodies()
