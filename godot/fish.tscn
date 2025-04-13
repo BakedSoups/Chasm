@@ -1,0 +1,72 @@
+[gd_scene load_steps=9 format=3 uid="uid://cxlhfme4vaui0"]
+
+[ext_resource type="Script" uid="uid://dp8agqfqaf3b8" path="res://fish.gd" id="1_xu20i"]
+[ext_resource type="Shader" uid="uid://csnn7lfrpbp1r" path="res://fish.gdshader" id="2_6ik3a"]
+[ext_resource type="ArrayMesh" uid="uid://bkvvy8oujdcjg" path="res://World_Scenes/Animals/salmon.res" id="3_oovoc"]
+
+[sub_resource type="Curve3D" id="Curve3D_6ik3a"]
+closed = true
+bake_interval = 0.01
+_data = {
+"points": PackedVector3Array(161.57, 14.6778, 82.792, -161.57, -14.6778, -82.792, -43.7516, 59.2243, 236.041, -197.03, -18.7763, 151.713, 197.03, 18.7763, -151.713, -48.6718, -150.261, -743.219, -191.47, -41.885, -158.181, 191.47, 41.885, 158.181, 960.089, -183.748, -887.552, 126.742, 25.9976, -154.332, -126.742, -25.9976, 154.332, 480.089, 35.0231, 412.553),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6ik3a"]
+render_priority = 0
+shader = ExtResource("2_6ik3a")
+shader_parameter/time_scale = 0.05
+shader_parameter/side_to_side = 0.2
+shader_parameter/pivot = 4.0
+shader_parameter/wave = 0.001
+shader_parameter/twist = 1.0
+shader_parameter/mask_black = 0.3
+shader_parameter/mask_white = 0.7
+
+[sub_resource type="Curve" id="Curve_hgn23"]
+_limits = [-360.0, 360.0, 0.0, 1.0]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.488889, 259.045), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_6ik3a"]
+curve = SubResource("Curve_hgn23")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_6ik3a"]
+lifetime_randomness = 0.3
+emission_shape_scale = Vector3(1.2, 0.5, 0.7)
+emission_shape = 1
+emission_sphere_radius = 11.86
+angle_curve = SubResource("CurveTexture_6ik3a")
+spread = 23.077
+gravity = Vector3(0, 0, 0)
+scale_min = 0.5
+scale_max = 2.0
+
+[node name="fishcontroller" type="Node3D"]
+script = ExtResource("1_xu20i")
+
+[node name="Path3D2" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.968196, -0.250194, 0, 0.250194, 0.968196, 0, 0, 0)
+curve = SubResource("Curve3D_6ik3a")
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D2"]
+transform = Transform3D(8.29156, 0.096821, -7.3143, -0.32048, 0.982574, 3.97233, 3.07504, -0.158665, 20.1363, 925.628, -89.1867, -446.968)
+progress = 2602.71
+use_model_front = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Path3D2/PathFollow3D"]
+transform = Transform3D(6.581, -2.62045e-10, -3.36137e-07, 2.65311e-10, 6.5, -4.98445e-10, 2.17343e-07, 3.18323e-10, 10.178, 0, 0, 0)
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Path3D2/PathFollow3D/MeshInstance3D"]
+transform = Transform3D(0.00889563, 0.000373029, -0.204967, -1.58862e-05, 1.56626, 4.3072e-05, 0.0661063, 0.000326195, 0.0275815, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_6ik3a")
+amount = 80
+lifetime = 600.0
+preprocess = 10.0
+speed_scale = 19.52
+explosiveness = 0.53
+collision_base_size = 1.42
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_6ik3a")
+draw_pass_1 = ExtResource("3_oovoc")

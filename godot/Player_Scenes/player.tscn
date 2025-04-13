@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=4 uid="uid://dggcol0wcshpi"]
+[gd_scene load_steps=19 format=4 uid="uid://dggcol0wcshpi"]
 
 [ext_resource type="Script" uid="uid://cc6h1ubcsyoqm" path="res://Scripts/player_script.gd" id="1_hv8xk"]
+[ext_resource type="Texture2D" uid="uid://pfjymmbvbnx2" path="res://circle_05.png" id="2_mk42u"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_duskh"]
 size = Vector3(1, 2.45313, 1)
@@ -547,6 +548,50 @@ _data = {
 &"mixamo_com": SubResource("Animation_u8t7r")
 }
 
+[sub_resource type="Gradient" id="Gradient_2qyk8"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_wrckt"]
+gradient = SubResource("Gradient_2qyk8")
+
+[sub_resource type="Curve" id="Curve_jkuwi"]
+_data = [Vector2(0, 0.779661), 0.0, 0.0, 0, 0, Vector2(0.492593, 0.879815), 0.0, 0.0, 0, 0, Vector2(1, 0.399076), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_4hg1e"]
+curve = SubResource("Curve_jkuwi")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1bb2l"]
+emission_shape = 3
+emission_box_extents = Vector3(10, 10, 10)
+spread = 24.6
+initial_velocity_min = 1.0
+initial_velocity_max = 2.0
+angular_velocity_min = 30.0
+angular_velocity_max = 60.0
+gravity = Vector3(0, -0.02, 0)
+scale_min = 0.5
+scale_max = 0.5
+scale_curve = SubResource("CurveTexture_4hg1e")
+color_ramp = SubResource("GradientTexture1D_wrckt")
+turbulence_enabled = true
+turbulence_noise_scale = 4.679
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vlomh"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.54744, 0.988707, 0.791476, 1)
+albedo_texture = ExtResource("2_mk42u")
+backlight_enabled = true
+backlight = Color(1, 1, 1, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_r3ib0"]
+material = SubResource("StandardMaterial3D_vlomh")
+
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_hv8xk")
 
@@ -820,3 +865,10 @@ light_color = Color(0.550351, 0.689097, 0.846169, 1)
 light_energy = 5.73
 light_indirect_energy = 2.349
 light_volumetric_fog_energy = 3.602
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0869459, 0.807394, 2.80445)
+amount = 50
+lifetime = 6.42
+process_material = SubResource("ParticleProcessMaterial_1bb2l")
+draw_pass_1 = SubResource("QuadMesh_r3ib0")

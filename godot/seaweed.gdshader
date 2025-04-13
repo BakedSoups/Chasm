@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, unshaded;
+render_mode cull_disabled; // Removed unshaded to allow lighting and outline effects
 
 // Wave motion parameters
 uniform float wave_speed = 0.2;
@@ -21,6 +21,11 @@ uniform float water_density = 1.2;
 // Textures
 uniform sampler2D color_ramp : source_color;
 uniform sampler2D current_noise : hint_default_black;
+
+// Outline parameters
+uniform vec4 outline_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float outline_width = 0.01;
+uniform float outline_intensity = 0.8;
 
 // Character interaction
 uniform vec3 character_position;
@@ -104,9 +109,26 @@ void vertex() {
 }
 
 void fragment() {
-    // Use the original color ramp
-    ALBEDO = texture(color_ramp, vec2(1.0 - UV.y, 0)).rgb;
+    // Calculate edge detection for toon outline
+    float edge = 0.0;
+    
+    // Calculate fresnel effect for the outline
+    float fresnel = pow(1.0 - dot(NORMAL, VIEW), 4.0);
+    edge = step(1.0 - outline_width, fresnel) * outline_intensity;
+    
+    // Get the base seaweed color from the color ramp
+    vec3 base_color = texture(color_ramp, vec2(1.0 - UV.y, 0)).rgb;
+    
+    // Mix the base color with the outline color based on the edge value
+    ALBEDO = mix(base_color, outline_color.rgb, edge);
     
     // Optional: Add a slight translucency effect for underwater look
     ALPHA = 0.9; // Slightly translucent
+    
+    // Simple toon effect without using light variables
+    // Add a slight cell-shading effect based on normal direction
+    float simple_toon = step(0.3, dot(NORMAL, vec3(0.0, 1.0, 0.0)));
+    
+    // Apply simple toon shading to final color
+    EMISSION = base_color * 0.2 * simple_toon; // Adding a slight emission to enhance the toon effect
 }
