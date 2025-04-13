@@ -24,6 +24,8 @@ extends CharacterBody3D
 @onready var mesh = $Skeleton3D
 @onready var animation_player = $AnimationPlayer3
 @onready var animation_player2 = $AnimationPlayer2
+## target search is placed on physics layer 32, and searches for targets on layer 32
+@onready var target_search = $TargetSearch
 
 var is_moving = false
 var is_dashing = false
@@ -41,6 +43,8 @@ var current_spring_rotation = Vector3.ZERO
 var target_mesh_rotation = 0.0
 var target_mesh_pitch = 0.0      # Target pitch for up/down rotation
 var current_mesh_pitch = 0.0     # Current pitch for up/down rotation
+
+var target_head = null
 
 var current_animation_state = "idle"
 var debug_counter = 0.0
@@ -70,19 +74,38 @@ func _input(event):
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		else:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	
+	if event.is_action_pressed("target"):
+		if target_head:
+			target_head = null
+		else:
+			var closest = closest_entity()
+			if closest: target_head = closest.target
+		print("Focusing: ", target_head)
 
 func _process(delta):
 	var joy_look = Vector2.ZERO
-	joy_look.x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
-	joy_look.y = Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
 	
-	if joy_look.length() < 0.2:
-		joy_look = Vector2.ZERO
-	
-	if joy_look != Vector2.ZERO:
-		target_spring_rotation.y -= joy_look.x * controller_look_sensitivity * delta
-		target_spring_rotation.x -= joy_look.y * controller_look_sensitivity * delta
+	## if targeting something focus on it
+	## else, follow the player's input
+	if target_head:
+		var old_rotation = spring_arm.rotation
+		spring_arm.look_at(target_head.global_position)
+		var new_rotation = spring_arm.rotation
+		
+		target_spring_rotation = lerp_rotation(old_rotation, new_rotation, delta * 3)
 		target_spring_rotation.x = clamp(target_spring_rotation.x, -PI/2, PI/2)
+	else:
+		joy_look.x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
+		joy_look.y = Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	
+		if joy_look.length() < 0.2:
+			joy_look = Vector2.ZERO
+		
+		if joy_look != Vector2.ZERO:
+			target_spring_rotation.y -= joy_look.x * controller_look_sensitivity * delta
+			target_spring_rotation.x -= joy_look.y * controller_look_sensitivity * delta
+			target_spring_rotation.x = clamp(target_spring_rotation.x, -PI/2, PI/2)
 	
 	_update_animation_state()
 	
@@ -295,3 +318,23 @@ func _switch_to_idle_animation():
 	animation_player2.set_speed_scale(1.0)
 	animation_player2.play("mixamo_com")
 	print("Switched to idle animation - Animation playing: ", animation_player2.is_playing(), " Current anim: ", animation_player2.current_animation)
+
+func closest_entity():
+	var entities = target_search.get_overlapping_bodies()
+	var closest = null
+	var d = INF
+	
+	for e in entities:
+		var dist = e.global_position.distance_to(self.global_position)
+		if dist < d:
+			d = dist
+			closest = e
+	
+	return closest
+
+func lerp_rotation(old, new, delta):
+	return Vector3(
+		lerp_angle(old.x, new.x, delta),
+		lerp_angle(old.y, new.y, delta),
+		lerp_angle(old.z, new.z, delta),
+	)

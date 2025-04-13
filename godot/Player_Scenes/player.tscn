@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=4 uid="uid://dggcol0wcshpi"]
+[gd_scene load_steps=12 format=4 uid="uid://dggcol0wcshpi"]
 
 [ext_resource type="Script" uid="uid://cc6h1ubcsyoqm" path="res://Scripts/player_script.gd" id="1_hv8xk"]
 
@@ -547,6 +547,9 @@ _data = {
 &"mixamo_com": SubResource("Animation_u8t7r")
 }
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_hv8xk"]
+radius = 15.0
+
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_hv8xk")
 
@@ -820,3 +823,10 @@ light_color = Color(0.550351, 0.689097, 0.846169, 1)
 light_energy = 5.73
 light_indirect_energy = 2.349
 light_volumetric_fog_energy = 3.602
+
+[node name="TargetSearch" type="Area3D" parent="."]
+collision_layer = 2147483648
+collision_mask = 2147483648
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TargetSearch"]
+shape = SubResource("SphereShape3D_hv8xk")

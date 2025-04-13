@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://cyf5dixwpbdbw"]
+[gd_scene load_steps=8 format=3 uid="uid://cyf5dixwpbdbw"]
 
 [ext_resource type="PackedScene" uid="uid://dggcol0wcshpi" path="res://Player_Scenes/player.tscn" id="1_cuxii"]
 [ext_resource type="Shader" uid="uid://bmlqyp1lb0l6f" path="res://World_Scenes/crt.gdshader" id="2_wquaw"]
 [ext_resource type="Shader" uid="uid://c2h2hq6k3eemh" path="res://World_Scenes/pixelate.gdshader" id="3_pvsxj"]
 [ext_resource type="PackedScene" uid="uid://b8vfihg1ufr1v" path="res://Plants.tscn" id="3_whn46"]
+[ext_resource type="PackedScene" uid="uid://1whx406k2hlk" path="res://Entity_Scenes/enemy.tscn" id="5_pvsxj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_whn46"]
 shader = ExtResource("2_wquaw")
@@ -36,3 +37,6 @@ offset_right = 1251.0
 offset_bottom = 719.0
 
 [node name="Node3D" parent="." instance=ExtResource("3_whn46")]
+
+[node name="Enemy" parent="." instance=ExtResource("5_pvsxj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.60852, 0)

@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://1whx406k2hlk"]
+
+[ext_resource type="Script" uid="uid://dlxrl1wed5ogd" path="res://classes/entity.gd" id="1_yfn54"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7xaro"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_7k104"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4gyqm"]
+albedo_color = Color(0.824752, 0.258438, 0.454304, 1)
+
+[node name="Enemy" type="CharacterBody3D"]
+collision_layer = 2147483649
+script = ExtResource("1_yfn54")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_7xaro")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_7k104")
+surface_material_override/0 = SubResource("StandardMaterial3D_4gyqm")
+
+[node name="Target" type="Node3D" parent="."]
