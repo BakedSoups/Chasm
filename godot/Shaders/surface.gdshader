@@ -45,7 +45,7 @@ float fresnel(float amount, vec3 normal, vec3 view) {
 }
 
 vec3 normalize_radians(float y, float x) {
-	return normalize(vec3(cos(radians(y)) * cos(radians(x)), sin(radians(x)), sin(radians(y)) * cos(radians(x))));  
+	return normalize(vec3(cos(radians(y)) * cos(radians(x)), sin(radians(x)), sin(radians(y)) * cos(radians(x))));
 }
 
 void vertex() {
@@ -69,21 +69,21 @@ void fragment() {
 	float air_refraction_index = 1.000293; //constant
 	float sea_water_refraction_index = 1.39807;  //constant
 	//float fresh_water_refraction_index = 1.38919; //constant
-	
+
 	float critical_angle = asin(air_refraction_index * sin (90.0) / sea_water_refraction_index);
-	
+
 	float air_light_speed = light_speed / air_refraction_index;
 	float sea_water_light_speed = light_speed / sea_water_refraction_index;
-	
-	
+
+
 	// To reflect or refract that is the quesstion:
 	float refracted_light_angle;
 	float reflected_light_angle;
 	vec3 view_direction;
 	/*float light_angle = asin(air_refraction_index * sin(refracted_angle) / sea_water_refraction_index);
-	
+
 	refracted_light_angle = asin(air_refraction_index * sin(refracted_angle) / sea_water_refraction_index);
-	
+
 	if (refracted_angle < critical_angle) {
 		// refract
 		view_direction = vec3(refracted_light_angle, NORMAL.z, refracted_angle);
@@ -92,7 +92,7 @@ void fragment() {
 		// reflect
 		view_direction = vec3(refracted_light_angle, NORMAL.x, refracted_angle); // kinda works
 	}*/
-	
+
 	//// refracted_light_angle = asin(air_refraction_index * sin(refracted_angle) / sea_water_refraction_index);
 
 
@@ -105,14 +105,14 @@ void fragment() {
 	//vec3 view_direction = vec3(refracted_light_angle, NORMAL.z, refracted_angle); // kinda works
 	float subsurface_alpha; //= fresnel(fresnel_size, NORMAL, VIEW) * fresnel_scale;
 	float incident_angle = dot(NORMAL, VIEW);
-	
+
 	vec3 albedo = surface_albedo;
 	vec4 radiance;
 	vec4 irradiance;
 	float alpha = surface_alpha;
 	float metalic;
 
-	
+
 	if (!FRONT_FACING) { // is below surface
 		/* ref: https://godotshaders.com/shader/snells-window/ */
 		float time = TIME * 0.01;
@@ -127,7 +127,7 @@ void fragment() {
 		vec2 distorted_uv = SCREEN_UV - normal_map.xy * 2.0 / length(VERTEX);
 		ALBEDO = texture(screen_texture, distorted_uv).rgb;
 		/* ref end */
-		
+
 		//subsurface_alpha = fresnel(fresnel_size, NORMAL, view_direction);
 		subsurface_alpha = step(sqrt(1.0 - pow(incident_angle, 2)) * sea_water_refraction_index, 1.0);  // `surface_alpha` determines if water is transparent or reflective
 		//albedo = mix(albedo1, ALBEDO, subsurface_alpha);
@@ -137,7 +137,7 @@ void fragment() {
 		//albedo = vec3(0.0, 0.0, 0.5);
 		alpha = surface_alpha * fresnel_scale;
 	}
-	
+
 	ALBEDO = albedo;
 	RADIANCE = radiance;
 	IRRADIANCE = irradiance;

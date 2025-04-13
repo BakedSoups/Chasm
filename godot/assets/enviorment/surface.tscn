@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://cinq3wicgecde"]
 
-[ext_resource type="Shader" uid="uid://broxsehpyqhfl" path="res://Shaders/surface.gdshader" id="1_o104s"]
+[ext_resource type="Shader" uid="uid://2kw0tm70b2y4" path="res://Shaders/surface.gdshader" id="1_o104s"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_k5s0u"]
 size = Vector2(50, 50)

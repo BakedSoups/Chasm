@@ -7,36 +7,33 @@ subdivide_width = 200
 subdivide_depth = 200
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_6c22s"]
+frequency = 0.0028
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_k35lw"]
 seamless = true
+seamless_blend_skirt = 0.014
 as_normal_map = true
-bump_strength = 1.5
+bump_strength = 11.0
 noise = SubResource("FastNoiseLite_6c22s")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_k35lw"]
 render_priority = 0
 shader = ExtResource("1_6c22s")
 shader_parameter/normal_map_texture = SubResource("NoiseTexture2D_k35lw")
-shader_parameter/water_color = Color(0.0625, 0.1992, 0.3594, 1)
-shader_parameter/index_of_refraction = 1.333
+shader_parameter/water_color = Color(0.199793, 0.450427, 0.749243, 1)
+shader_parameter/underwater_ripple_color = Color(0.142688, 0.271287, 0.509857, 1)
+shader_parameter/index_of_refraction = 3.0
+shader_parameter/window_scale = 0.3
+shader_parameter/transparency = 0.5
+shader_parameter/ripple_strength = 0.03
+shader_parameter/ripple_speed = 0.05
+shader_parameter/ripple_scale = 4.0
+shader_parameter/underwater_ripple_visibility = 0.5
+shader_parameter/underwater_ripple_tint = 0.2
 
 [node name="Example_Window" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00452385, 0.0118679, 0.0254548)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00452385, 0.0118679, 0.00923399)
 mesh = SubResource("PlaneMesh_pihy4")
 surface_material_override/0 = SubResource("ShaderMaterial_k35lw")
-
-[node name="Node3D" parent="."]
-_import_path = NodePath("")
-unique_name_in_owner = false
-process_mode = 0
-process_priority = 0
-process_physics_priority = 0
-process_thread_group = 0
-physics_interpolation_mode = 0
-auto_translate_mode = 0
-editor_description = ""
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -130.577, 0)
-script = null

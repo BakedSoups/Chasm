@@ -4,6 +4,8 @@ extends CharacterBody3D
 @export var acceleration = 12.0
 @export var deceleration = 5.0
 @export var rotation_speed = 3.0
+@export var vertical_rotation_speed = 2.0  # Speed for up/down rotation
+@export var max_vertical_rotation = 0.5    # Maximum pitch in radians (about 30 degrees)
 
 @export var dash_speed = 90.0
 @export var dash_duration = 0.3
@@ -19,7 +21,9 @@ extends CharacterBody3D
 
 @onready var spring_arm = $SpringArm3D
 @onready var camera = $SpringArm3D/Camera3D
-@onready var mesh = $Mesh
+@onready var mesh = $Skeleton3D
+@onready var animation_player = $AnimationPlayer3
+@onready var animation_player2 = $AnimationPlayer2
 
 var is_moving = false
 var is_dashing = false
@@ -35,6 +39,11 @@ var target_dash_speed = 0.0
 var target_spring_rotation = Vector3.ZERO
 var current_spring_rotation = Vector3.ZERO
 var target_mesh_rotation = 0.0
+var target_mesh_pitch = 0.0      # Target pitch for up/down rotation
+var current_mesh_pitch = 0.0     # Current pitch for up/down rotation
+
+var current_animation_state = "idle"
+var debug_counter = 0.0
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -44,6 +53,10 @@ func _ready():
 	
 	current_spring_rotation = spring_arm.rotation
 	target_spring_rotation = spring_arm.rotation
+	
+	_ensure_animations_loop()
+	
+	_switch_to_idle_animation()
 
 func _input(event):
 	if event is InputEventMouseMotion:
@@ -70,6 +83,17 @@ func _process(delta):
 		target_spring_rotation.y -= joy_look.x * controller_look_sensitivity * delta
 		target_spring_rotation.x -= joy_look.y * controller_look_sensitivity * delta
 		target_spring_rotation.x = clamp(target_spring_rotation.x, -PI/2, PI/2)
+	
+	_update_animation_state()
+	
+	if debug_counter != null:
+		debug_counter += delta
+		if debug_counter > 2.0:
+			debug_counter = 0.0
+			print("Animation 1 playing: ", animation_player.is_playing(), 
+				  " Animation 2 playing: ", animation_player2.is_playing(),
+				  " Current state: ", current_animation_state,
+				  " Is moving: ", is_moving)
 
 func _physics_process(delta):
 	if dash_cooldown_timer > 0:
@@ -111,6 +135,13 @@ func _physics_process(delta):
 		move_direction += right * joy_direction.x
 		move_direction += forward * -joy_direction.y
 	
+	if Input.is_action_pressed("ui_rise"):
+		target_mesh_pitch = -max_vertical_rotation  # Pitch up when rising
+	elif Input.is_action_pressed("ui_dive"):
+		target_mesh_pitch = max_vertical_rotation   # Pitch down when diving
+	else:
+		target_mesh_pitch = 0.0  # Return to neutral when not moving vertically
+	
 	if Input.is_action_just_pressed("ui_dash") and dash_cooldown_timer <= 0 and !is_dashing:
 		if last_move_direction.length() > 0.1:
 			dash_direction = last_move_direction
@@ -120,7 +151,6 @@ func _physics_process(delta):
 			dash_direction = dash_direction.normalized()
 		
 		if dash_direction.length() > 0.1:
-			# Preserve vertical movement during dash
 			dash_direction.y = 0
 			dash_direction = dash_direction.normalized()
 			
@@ -156,10 +186,8 @@ func _physics_process(delta):
 		else:
 			current_dash_speed = lerp(current_dash_speed, max_speed * post_dash_inertia, delta * dash_deceleration)
 		
-		# Create the dash velocity vector while preserving vertical movement
 		var dash_move_vector = dash_direction * current_dash_speed
 		
-		# Maintain the original vertical velocity during dash
 		velocity.x = dash_move_vector.x
 		velocity.z = dash_move_vector.z
 		
@@ -210,7 +238,6 @@ func _physics_process(delta):
 	move_and_slide()
 
 func _update_camera_position(delta):
-	# Use faster camera tracking during dashes
 	var smoothing_value = dash_camera_smoothing if is_dashing else camera_smoothing
 	var smoothing_speed = 1.0 - exp(-smoothing_value / delta)
 	
@@ -227,5 +254,44 @@ func _update_mesh_rotation(delta):
 		
 	var current_rotation = mesh.rotation.y
 	var rotation_diff = fposmod(target_mesh_rotation - current_rotation + PI, TAU) - PI
-	var smoothing_factor = 1.0 - exp(-rotation_speed * delta)
-	mesh.rotation.y += rotation_diff * smoothing_factor
+	var yaw_smoothing_factor = 1.0 - exp(-rotation_speed * delta)
+	mesh.rotation.y += rotation_diff * yaw_smoothing_factor
+	
+	var pitch_smoothing_factor = 1.0 - exp(-vertical_rotation_speed * delta)
+	current_mesh_pitch = lerp(current_mesh_pitch, target_mesh_pitch, pitch_smoothing_factor)
+	mesh.rotation.x = current_mesh_pitch
+
+func _update_animation_state():
+	if is_dashing or is_moving:
+		if current_animation_state != "moving":
+			current_animation_state = "moving"
+			_switch_to_moving_animation()
+	else:
+		if current_animation_state != "idle":
+			current_animation_state = "idle"
+			_switch_to_idle_animation()
+
+func _ensure_animations_loop():
+	var idle_anim = animation_player2.get_animation("mixamo_com")
+	var move_anim = animation_player.get_animation("mixamo_com")
+	
+	if idle_anim:
+		idle_anim.loop_mode = Animation.LOOP_LINEAR
+	if move_anim:
+		move_anim.loop_mode = Animation.LOOP_LINEAR
+
+func _switch_to_moving_animation():
+	animation_player2.stop()
+	
+	animation_player.stop()
+	animation_player.set_speed_scale(1.0) 
+	animation_player.play("mixamo_com")
+	print("Switched to moving animation - Animation playing: ", animation_player.is_playing(), " Current anim: ", animation_player.current_animation)
+
+func _switch_to_idle_animation():
+	animation_player.stop()
+	
+	animation_player2.stop()
+	animation_player2.set_speed_scale(1.0)
+	animation_player2.play("mixamo_com")
+	print("Switched to idle animation - Animation playing: ", animation_player2.is_playing(), " Current anim: ", animation_player2.current_animation)

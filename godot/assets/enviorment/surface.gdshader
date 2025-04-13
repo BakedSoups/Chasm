@@ -46,7 +46,7 @@ void fragment() {
 	vec3 texture_mix = mix(normal1, normal2, 0.5);
 	vec3 surface_albedo = mix(albedo1, albedo2, fresnel(fresnel_size, NORMAL, VIEW));
 	float surface_alpha = fresnel(fresnel_size, NORMAL, VIEW) * fresnel_scale;
-	
+
 	ALBEDO = surface_albedo;
 	ROUGHNESS = roughness;
 	NORMAL_MAP = texture_mix;
